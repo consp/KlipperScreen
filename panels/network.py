@@ -22,14 +22,18 @@ class Panel(ScreenPanel):
         self.wireless_interfaces = [iface for iface in self.network_interfaces if iface.startswith('wl')]
         self.wifi = None
         self.use_network_manager = os.system('systemctl is-active --quiet NetworkManager.service') == 0
+        self.use_wpa_supplicant = os.system('pidof wpa_supplicant') == 0
         if self.wireless_interfaces:
             logging.info(f"Found wireless interfaces: {self.wireless_interfaces}")
             if self.use_network_manager:
                 logging.info("Using NetworkManager")
                 from ks_includes.wifi_nm import WifiManager
-            else:
+            elif self.use_wpa_supplicant:
                 logging.info("Using wpa_cli")
                 from ks_includes.wifi import WifiManager
+            else:
+                logging.info("Using iwd")
+                from ks_includes.wifi_iwd import WifiManager
             self.wifi = WifiManager(self.wireless_interfaces[0])
         else:
             logging.info(_("No wireless interface has been found"))
