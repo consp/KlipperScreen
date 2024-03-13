@@ -21,6 +21,10 @@ SCREEN_BLANKING_OPTIONS = [
     14400,  # 4 Hours
 ]
 
+SCREEN_BRIGHTNESS_OPTIONS = [
+    10, 20, 30, 40, 50, 60, 70, 80, 90, 100
+]
+
 klipperscreendir = pathlib.Path(__file__).parent.resolve().parent
 home = os.path.expanduser("~/")
 printer_data_config = os.path.join(home, "printer_data", "config")
@@ -161,7 +165,7 @@ class KlipperScreenConfig:
                     'show_heater_power', "show_scroll_steppers", "auto_open_extrude"
                 )
                 strs = (
-                    'default_printer', 'language', 'print_sort_dir', 'theme', 'screen_blanking', 'font_size',
+                    'default_printer', 'language', 'print_sort_dir', 'theme', 'screen_blanking', 'screen_brightness', 'font_size',
                     'print_estimate_method', 'screen_blanking', "screen_on_devices", "screen_off_devices",
                 )
                 numbers = (
@@ -256,6 +260,10 @@ class KlipperScreenConfig:
                 "value": "3600", "callback": screen.set_screenblanking_timeout, "options": [
                     {"name": _("Never"), "value": "off"}]
             }},
+            {"screen_brightness": {
+                "section": "main", "name": _("Screen Brightness"), "type": "dropdown",
+                "value": "70", "callback": screen.set_screen_brightness, "options": []
+            }},
             {"24htime": {"section": "main", "name": _("24 Hour Time"), "type": "binary", "value": "True"}},
             {"side_macro_shortcut": {
                 "section": "main", "name": _("Macro shortcut on sidebar"), "type": "binary",
@@ -316,6 +324,13 @@ class KlipperScreenConfig:
                 name = f'{minute:.0f} ' + ngettext("minute", "minutes", minute)
             self.configurable_options[index]['screen_blanking']['options'].append({
                 "name": name,
+                "value": f"{num}"
+            })
+        index = self.configurable_options.index(
+            [i for i in self.configurable_options if list(i)[0] == "screen_brightness"][0])
+        for num in SCREEN_BRIGHTNESS_OPTIONS:
+            self.configurable_options[index]['screen_brightness']['options'].append({
+                "name": f"{num}%",
                 "value": f"{num}"
             })
 

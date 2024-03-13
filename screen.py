@@ -178,6 +178,7 @@ class KlipperScreen(Gtk.Window):
             # Prevent this dialog from being destroyed
             self.dialogs = []
         self.set_screenblanking_timeout(self._config.get_main_config().get('screen_blanking'))
+        self.set_screen_brightness(self._config.get_main_config().get('screen_brightness'))
         self.log_notification("KlipperScreen Started", 1)
         self.initial_connection()
         if sys.version_info == (3, 7):
@@ -574,6 +575,8 @@ class KlipperScreen(Gtk.Window):
         if self.screensaver_timeout is not None:
             GLib.source_remove(self.screensaver_timeout)
             self.screensaver_timeout = None
+        # ff ad5m brightness disable
+        self.set_screen_brightness(0, update=False)  # turn off
         return False
 
     def close_screensaver(self, widget=None):
@@ -590,6 +593,7 @@ class KlipperScreen(Gtk.Window):
         for dialog in self.dialogs:
             logging.info(f"Restoring Dialog {dialog}")
             dialog.show()
+        self.set_screen_brightness(self.brightness, update=False)
         self.show_all()
         self.power_devices(None, self._config.get_main_config().get("screen_on_devices", ""), on=True)
 
@@ -617,6 +621,14 @@ class KlipperScreen(Gtk.Window):
         self.use_dpms = use_dpms
         logging.info(f"DPMS set to: {self.use_dpms}")
         self.set_screenblanking_timeout(self._config.get_main_config().get('screen_blanking'))
+
+    def set_screen_brightness(self, brightness, update=True):
+        if not isinstance(brightness, int):
+            brightness = int(brightness)
+        if update:
+            self.brightness = brightness
+        logging.debug(f"setting brightness to {brightness}")
+        data = subprocess.check_output([f'backlight {brightness}'], shell=True, timeout=2)
 
     def set_screenblanking_timeout(self, time):
         if not self.wayland:
