@@ -628,7 +628,7 @@ class KlipperScreen(Gtk.Window):
         if update:
             self.brightness = brightness
         logging.debug(f"setting brightness to {brightness}")
-        data = subprocess.check_output([f'backlight {brightness}'], shell=True, timeout=2)
+        data = subprocess.check_output([f'backlight {brightness}'], shell=True, timeout=10)
 
     def set_screenblanking_timeout(self, time):
         if not self.wayland:
