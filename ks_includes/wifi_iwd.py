@@ -187,8 +187,11 @@ class WifiManager:
         # we get the actual known ssid list from the psk values in the
         # /var/lib/iwd directory
         # currently only supports psk
-        data = subprocess.check_output(['ls /var/lib/iwd/*.psk'], shell=True, timeout=5)
-        data = data.decode()
+        try:
+            data = subprocess.check_output(['ls /var/lib/iwd/*.psk'], shell=True, timeout=5)
+            data = data.decode()
+        except subprocess.CalledProcessError:
+            data = ""
 
         self.supplicant_networks = {}
         self.networks_in_supplicant = []
@@ -221,30 +224,36 @@ class WifiManager:
 
         aps = []
         for res in results:
-            res = res.replace("\n", "|").replace("                    ", "").replace("    ", "")
-            match = re.match("^.*Address: ([0-9A-F:]+).*ESSID:([^|]+)\|Protocol:([0-9A-Za-z\.\\s]+)\|Mode:([A-z]+)\|Frequency:([0-9\.\sA-Za-z]+).*\|.*IE: ([0-9A-Za-z:\./\\s]+).*\|.*Signal level=([0-9/]+)", res)
-            if match:
-                net = {
-                    "mac": match[1],
-                    "channel": WifiChannels.lookup(match[5].replace('.', '')[:4])[1],
-                    "connected": False,
-                    "configured": False,
-                    "frequency": match[5],
-                    "flags": match[6],
-                    "signal_level_dBm": match[7].split('/')[0],
-                    "ssid": match[2].replace("\"", "")
-                }
+            try:
+                res = res.replace("\n", "$").replace("                    ", "").replace("    ", "")
+                match = re.match("^.*Address: ([0-9A-F:]+).*ESSID:([^\$]+)\$Protocol:([0-9A-Za-z\.\\s]+)\$Mode:([A-z]+)\$Frequency:([0-9\.\sA-Za-z]+).*\$.*IE: ([0-9A-Za-z:\./\\s]+).*\$.*Signal level=([0-9/]+)", res)
+                if match:
+                    net = {
+                        "mac": match[1],
+                        "channel": WifiChannels.lookup(match[5].replace('.', '')[:4])[1] if match[5] is not None else "?",
+                        "connected": False,
+                        "configured": False,
+                        "frequency": match[5],
+                        "flags": match[6],
+                        "signal_level_dBm": match[7].split('/')[0],
+                        "ssid": match[2].replace("\"", "")
+                    }
 
-                if "WPA2" in net['flags']:
-                    net['encryption'] = "WPA2"
-                elif "WPA" in net['flags']:
-                    net['encryption'] = "WPA"
-                elif "WEP" in net['flags']:
-                    net['encryption'] = "WEP"
-                else:
-                    net['encryption'] = "off"
+                    if "WPA2" in net['flags']:
+                        net['encryption'] = "WPA2"
+                    elif "WPA" in net['flags']:
+                        net['encryption'] = "WPA"
+                    elif "WEP" in net['flags']:
+                        net['encryption'] = "WEP"
+                    else:
+                        net['encryption'] = "off"
 
-                aps.append(net)
+                    aps.append(net)
+            except TypeError: # invalid data in match
+                logging.error("Failed to match SSID")
+                logging.error(str(match))
+                logging.error(res)
+                pass
 
         cur_info = self.get_current_wifi()
         self.networks = {}
@@ -272,7 +281,8 @@ class WifiChannels:
         try:
             freq = float(freq)
         except ValueError:
-            return None
+            logging.error("Invalid frequency: %s" % (str))
+            return "NaN", "NaN"
         if 2412 <= freq <= 2472:
             return "2.4", str(int((freq - 2407) / 5))
         elif 3657.5 <= freq <= 3692.5:
