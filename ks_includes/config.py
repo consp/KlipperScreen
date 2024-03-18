@@ -7,6 +7,7 @@ import re
 import copy
 import pathlib
 import locale
+import zoneinfo
 
 from io import StringIO
 
@@ -166,7 +167,7 @@ class KlipperScreenConfig:
                 )
                 strs = (
                     'default_printer', 'language', 'print_sort_dir', 'theme', 'screen_blanking', 'screen_brightness', 'font_size',
-                    'print_estimate_method', 'screen_blanking', "screen_on_devices", "screen_off_devices",
+                    'print_estimate_method', 'screen_blanking', "screen_on_devices", "screen_off_devices", "timezone",
                 )
                 numbers = (
                     'job_complete_timeout', 'job_error_timeout', 'move_speed_xy', 'move_speed_z',
@@ -264,6 +265,10 @@ class KlipperScreenConfig:
                 "section": "main", "name": _("Screen Brightness"), "type": "dropdown",
                 "value": "70", "callback": screen.set_screen_brightness, "options": []
             }},
+            {"timezone": {
+                "section": "main", "name": _("Timezone"), "type": "dropdown",
+                "value": "UTC", "callback": screen.set_timezone, "options": []
+            }},
             {"24htime": {"section": "main", "name": _("24 Hour Time"), "type": "binary", "value": "True"}},
             {"side_macro_shortcut": {
                 "section": "main", "name": _("Macro shortcut on sidebar"), "type": "binary",
@@ -333,6 +338,16 @@ class KlipperScreenConfig:
                 "name": f"{num}%",
                 "value": f"{num}"
             })
+
+        # get list index from /usr/share/zoneinfo/Etc
+        # posix is too complicated for now
+        index = self.configurable_options.index(
+            [i for i in self.configurable_options if list(i)[0] == "timezone"][0])
+        for name in sorted(zoneinfo.available_timezones()):
+            self.configurable_options[index]['timezone']['options'].append({
+                "name": name,
+                "value": name
+                })
 
         for item in self.configurable_options:
             name = list(item)[0]

@@ -11,6 +11,7 @@ import traceback  # noqa
 import locale
 import sys
 import gi
+import time
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, GLib, Pango
@@ -621,6 +622,21 @@ class KlipperScreen(Gtk.Window):
         self.use_dpms = use_dpms
         logging.info(f"DPMS set to: {self.use_dpms}")
         self.set_screenblanking_timeout(self._config.get_main_config().get('screen_blanking'))
+
+    def set_timezone(self, timezone):
+        logging.info("Setting timezone to %s" % timezone)
+        tzpath = "/usr/share/zoneinfo"
+        tzfile = "/root/printer_data/config/timezone"
+        try:
+            os.unlink(tzfile)
+            os.symlink(os.path.join(tzpath, timezone), tzfile)
+        except OSError:
+            logging.info("no rights")
+        except Exception as e:
+            logging.error(e)
+            pass
+        time.tzset() # update timezone info
+        self.base_panel.update_time(force=True)
 
     def set_screen_brightness(self, brightness, update=True):
         if not isinstance(brightness, int):

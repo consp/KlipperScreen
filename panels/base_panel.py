@@ -270,10 +270,10 @@ class BasePanel(ScreenPanel):
 
         self.titlelbl.set_label(f"{self._screen.connecting_to_printer} | {title}")
 
-    def update_time(self):
+    def update_time(self, force=False):
         now = datetime.now()
         confopt = self._config.get_main_config().getboolean("24htime", True)
-        if now.minute != self.time_min or self.time_format != confopt:
+        if now.minute != self.time_min or self.time_format != confopt or force:
             if confopt:
                 self.control['time'].set_text(f'{now:%H:%M }')
             else:
