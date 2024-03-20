@@ -628,7 +628,11 @@ class KlipperScreen(Gtk.Window):
         tzpath = "/usr/share/zoneinfo"
         tzfile = "/root/printer_data/config/timezone"
         try:
-            os.unlink(tzfile)
+            try:
+                os.unlink(tzfile)
+            except:
+                # allowed to fail if file not present
+                pass
             os.symlink(os.path.join(tzpath, timezone), tzfile)
         except OSError:
             logging.info("no rights")
