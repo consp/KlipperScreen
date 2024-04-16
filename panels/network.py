@@ -16,8 +16,11 @@ class Panel(ScreenPanel):
         self.show_add = False
         self.networks = {}
         self.interface = None
+        self.wifi_interface = None
         self.prev_network = None
         self.update_timeout = None
+        self.wlanip = "-"
+        self.ethip = "-"
         self.network_interfaces = netifaces.interfaces()
         self.wireless_interfaces = [iface for iface in self.network_interfaces if iface.startswith('wl')]
         self.wifi = None
@@ -38,26 +41,31 @@ class Panel(ScreenPanel):
         else:
             logging.info(_("No wireless interface has been found"))
 
-        # Get IP Address
-        gws = netifaces.gateways()
-        if "default" in gws and netifaces.AF_INET in gws["default"]:
-            self.interface = gws["default"][netifaces.AF_INET][1]
-        else:
-            ints = netifaces.interfaces()
-            if 'lo' in ints:
-                ints.pop(ints.index('lo'))
-            self.interface = ints[0] if len(ints) > 0 else 'lo'
+        # Get IP Address, we find both eth and wlan
+        ints = netifaces.interfaces()
+        if 'lo' in ints:
+            ints.pop(ints.index('lo'))
+        for i in ints:
+            if i.startswith("eth"):
+                self.interface = i
+            elif i.startswith("wlan"):
+                self.wifi_interface = i
+        
 
         self.labels['networks'] = {}
 
         self.labels['interface'] = Gtk.Label(hexpand=True)
-        self.labels['interface'].set_text(_("Interface") + f': {self.interface}  ')
+        self.labels['interface'].set_text(_("Interfaces") + f': {self.interface} {self.wifi_interface} ')
 
         self.labels['ip'] = Gtk.Label(hexpand=True)
         ifadd = netifaces.ifaddresses(self.interface)
         if ifadd.get(netifaces.AF_INET):
-            self.labels['ip'].set_text(f"IP: {ifadd[netifaces.AF_INET][0]['addr']}  ")
+            self.ethip = ifadd[netifaces.AF_INET][0]['addr']
+        ifadd = netifaces.ifaddresses(self.wifi_interface)
+        if ifadd.get(netifaces.AF_INET):
+            self.wlanip = ifadd[netifaces.AF_INET][0]['addr']
 
+        self.labels['ip'].set_text("Eth IP: " + self.ethip + " | Wlan ip: " + self.wlanip)
         reload_networks = self._gtk.Button("refresh", None, "color1", self.bts)
         reload_networks.connect("clicked", self.reload_networks)
         reload_networks.set_hexpand(False)
@@ -339,10 +347,11 @@ class Panel(ScreenPanel):
             return
         netinfo = self.wifi.get_network_info(ssid)
         if netinfo.get('connected') or self.wifi.get_connected_ssid() == ssid:
-            ifadd = netifaces.ifaddresses(self.interface)
+            ifadd = netifaces.ifaddresses(self.wifi_interface)
             if ifadd.get(netifaces.AF_INET):
                 ipv4 = f"<b>IPv4:</b> {ifadd[netifaces.AF_INET][0]['addr']}"
-                self.labels['ip'].set_text(f"IP: {ifadd[netifaces.AF_INET][0]['addr']}  ")
+                self.wlanip = ifadd[netifaces.AF_INET][0]['addr']
+                self.labels['ip'].set_text("Eth IP: " + self.ethip + " | Wlan ip: " + self.wlanip)
             if ifadd.get(netifaces.AF_INET6):
                 ipv6 = f"<b>IPv6:</b> {ifadd[netifaces.AF_INET6][0]['addr'].split('%')[0]}"
 
@@ -387,10 +396,11 @@ class Panel(ScreenPanel):
 
     def update_single_network_info(self):
         ifadd = netifaces.ifaddresses(self.interface)
+        logging.critical(self.interface, ifadd)
         ipv6 = f"{ifadd[netifaces.AF_INET6][0]['addr'].split('%')[0]}" if ifadd.get(netifaces.AF_INET6) else ""
         if netifaces.AF_INET in ifadd and ifadd[netifaces.AF_INET]:
-            ipv4 = f"{ifadd[netifaces.AF_INET][0]['addr']} "
-            self.labels['ip'].set_text(f"IP: {ifadd[netifaces.AF_INET][0]['addr']}  ")
+            self.ethip = ipv4 = f"{ifadd[netifaces.AF_INET][0]['addr']}"
+            self.labels['ip'].set_text("Eth IP: " + self.ethip + " | Wlan ip: " + self.wlanip)
         else:
             ipv4 = ""
         self.labels['networkinfo'].set_markup(
