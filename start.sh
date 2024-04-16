@@ -1,5 +1,6 @@
 #!/bin/sh
 PYTHON=/root/printer_software/KlipperScreen/KlipperScreen-env/bin/python3
+PYTHON_OPTIONS=-OO
 VENV=/root/printer_software/KlipperScreen/KlipperScreen-env/bin/activate
 KLIPPERSCREEN=/root/printer_software/KlipperScreen/screen.py
 KLIPPERSCREEN_DIR=/root/printer_software/KlipperScreen
@@ -17,7 +18,7 @@ source $VENV
 
 while true;
 do
-    if ! $PYTHON $KLIPPERSCREEN --logfile $KLIPPERSCREEN_LOGFILE --config $KLIPPERSCREEN_CONFIG; then
+    if ! $PYTHON $PYTHON_OPTIONS $KLIPPERSCREEN --logfile $KLIPPERSCREEN_LOGFILE --config $KLIPPERSCREEN_CONFIG; then
         echo "Klipperscreen exited with an error, pleach check the logs"
         exit 1
     fi
