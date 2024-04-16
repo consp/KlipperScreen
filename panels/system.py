@@ -27,7 +27,7 @@ class Panel(ScreenPanel):
         shutdown.connect("clicked", self.reboot_poweroff, "poweroff")
         shutdown.set_vexpand(False)
 
-        self.update_msg = Gtk.Label(label=_("Checking for updates, please wait..."), vexpand=True)
+        self.update_msg = Gtk.Label(label=_("Version info and updates not available.\nPlease download the latest release from github."), vexpand=True)
 
         self.scroll = self._gtk.ScrolledWindow()
         self.scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -42,7 +42,9 @@ class Panel(ScreenPanel):
         self.content.add(self.main_grid)
 
     def activate(self):
-        self._screen._ws.send_method('machine.update.status', callback=self.get_updates)
+        # self._screen._ws.send_method('machine.update.status', callback=self.get_updates)
+        # update is not available
+        pass
 
     def create_info_grid(self):
         infogrid = Gtk.Grid()
