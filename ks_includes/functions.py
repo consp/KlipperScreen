@@ -156,7 +156,7 @@ def setup_logging(log_file):
     queue = Queue()
     queue_handler = logging.handlers.QueueHandler(queue)
     root_logger.addHandler(queue_handler)
-    root_logger.setLevel(logging.DEBUG)
+    root_logger.setLevel(logging.ERROR)
 
     stdout_hdlr = logging.StreamHandler(sys.stdout)
     stdout_fmt = logging.Formatter(
