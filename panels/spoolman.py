@@ -101,10 +101,10 @@ class SpoolmanSpool(GObject.GObject):
             if SpoolmanSpool._spool_icon is None:
                 klipperscreendir = pathlib.Path(__file__).parent.resolve().parent
                 _spool_icon_path = os.path.join(
-                    klipperscreendir, "styles", SpoolmanSpool.theme_path, "images", "spool.svg"
+                    klipperscreendir, "styles", SpoolmanSpool.theme_path, "images", "spool.png"
                 )
                 if not os.path.isfile(_spool_icon_path):
-                    _spool_icon_path = os.path.join(klipperscreendir, "styles", "spool.svg")
+                    _spool_icon_path = os.path.join(klipperscreendir, "styles", "spool.png")
                 SpoolmanSpool._spool_icon = pathlib.Path(_spool_icon_path).read_text()
 
             loader = GdkPixbuf.PixbufLoader()

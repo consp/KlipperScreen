@@ -160,7 +160,7 @@ class KlipperScreen(Gtk.Window):
         self.show_cursor = self._config.get_main_config().getboolean("show_cursor", fallback=False)
         self.gtk = KlippyGtk(self)
         self.init_style()
-        self.set_icon_from_file(os.path.join(klipperscreendir, "styles", "icon.svg"))
+        self.set_icon_from_file(os.path.join(klipperscreendir, "styles", "icon.png"))
 
         self.base_panel = BasePanel(self, title="Base Panel")
         self.add(self.base_panel.main_grid)

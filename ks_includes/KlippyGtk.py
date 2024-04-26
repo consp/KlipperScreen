@@ -121,7 +121,7 @@ class KlippyGtk:
         width = width if width is not None else self.img_width
         height = height if height is not None else self.img_height
         filename = os.path.join(self.themedir, filename)
-        for ext in ["svg", "png"]:
+        for ext in ["png"]:
             pixbuf = self.PixbufFromFile(f"{filename}.{ext}", int(width), int(height))
             if pixbuf is not None:
                 return pixbuf
